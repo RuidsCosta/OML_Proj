@@ -49,6 +49,23 @@ def plot_data(row,col,n_row,n_col,data):
     plt.show()
 
 
+def plot_error(err):
+    plt.plot(range(len(err)), err, marker='o')
+    plt.xlabel('Iterations')
+    plt.ylabel('Number of misclassifications')
+    #plt.ylim([0,5])
+    plt.show()
+    return 
+
+def confusion(Xeval,Yeval,N,lambd):
+    C=np.zeros([2,2])
+    for n in range(N):
+        y=predictor(Xeval[n], Xeval,lambd)
+        if(y<0.5 and Yeval[n]<0.5): C[0,0]=C[0,0]+1
+        if(y>0.5 and Yeval[n]>0.5): C[1,1]=C[1,1]+1
+        if(y<0.5 and Yeval[n]>0.5): C[1,0]=C[1,0]+1
+        if(y>0.5 and Yeval[n]<0.5): C[0,1]=C[0,1]+1 
+    return C
 
 
 
@@ -64,11 +81,22 @@ def sigmoid(s):
 # funçao que calcula a previsao
 # no dual tenho que mudar isto para ewT (transposta) -> predictor(ewT, x)
 # lambda substitui o ew
+# length X -> 1500 // length X [1] -> 144
+# length x -> 144
+# length lambd -> 1500
 def predictor (x, X, lambd):
-    sum = np.zeros([I+1])
+    # DUVIDA -> tinhamos I + 1 mas so pode ser I senao os comprimentos nao coencidem
+    sum = np.zeros([I])
+
     #componente nr 0 // tratada a parte
     bias = 0
-    for n in X:
+    for n in range(len(X)):
+        # print("teste de lambd")
+        # print(len(lambd))
+        # nao esta a dar para multiplicar o array por um int
+        #aux_list = [i * lambd[n] for i in X[n]]
+        # print("teste de lista aux")
+        # print((aux_list))
         sum = sum + lambd[n] * X[n]
         bias = bias + lambd[n]
     sum = np.dot(sum,x) + bias
@@ -95,11 +123,30 @@ def cost(X, Y, N, lambd):
 
 
 
+def update(m,X,y,eta,lambd):
+    x = X[m,:]
+    r = predictor(x, X, lambd)
+    s = (y - r)
+    s = eta * s
+    
+    lambd[0] = lambd[0] + s
+    lambd[m] = lambd[m] + s * x
+    return lambd
 
 
 
-
-
+def run_stocastic(X, Y, N, eta, MAX_ITER, lambd, err):
+    epsi = 0
+    it = 0
+    while(err[-1] > epsi):
+        n = int(np.random.rand()*N)
+        new_eta = eta
+        lambd = update(n, X, Y[n], new_eta, lambd)
+        err.append(cost(X, Y, N, lambd))
+        print('iter %d, cost=%f, eta=%e     \r' %(it,err[-1],new_eta),end='')
+        it = it + 1
+        if(it>MAX_ITER): break
+    return lambd, err
 
 
 # -----------------  Main Code ---------------------
@@ -120,23 +167,44 @@ print('find %d images of %d X %d pixels' % (N,n_row,n_col))
 #Porque esta definição?
 #o N ja é um int
 # 0.8 -> percentagem de valores de teste
-Nt = int(N*0.8)
+Nt = int(N*1)
 #numero total de elementos
 I = n_row * n_col
 #definir os vetores de dados de teste
 Xt = data[:Nt, :-1]
 Yt = data[:Nt, -1]
+#script para substituir os valores negativos por zero
+for n in range(len(Yt)):
+    if Yt[n] < 0:
+        Yt[n] = 0
+print("####################################")
+print(Yt)
 #vetor preenchido pelo valor 1
 lambd = np.ones([Nt])
 err = []
-print(lambd)
+
+print(Xt)
 #in sample error
 err.append(cost(Xt,Yt,Nt,lambd))
 
-#validation data
-Nv = N-Nt
-Xv = data[Nt + 1 : N, :-1]
-Yv = data[Nt + 1 : N, -1]
-#out sample error
-# avaliaçao da capacidade de generalização a outros dados que nao os de treino
-print(cost(Xv,Yv,Nv,lambd))
+
+#0.1 -> training rate
+#500 -> nr de iteraçoes
+lambd,err=run_stocastic(Xt,Yt,Nt,0.1,500,lambd,err);print("\n")
+lambd,err=run_stocastic(Xt,Yt,Nt,0.03,500,lambd,err);print("\n")
+
+plot_error(err)
+
+print('in-samples error=%f ' % (cost(Xt,Yt,Nt,ew)))
+C =confusion(Xt,Yt,Nt,ew)
+print(C)
+
+
+
+# #validation data
+# Nv = N-Nt
+# Xv = data[Nt + 1 : N, :-1]
+# Yv = data[Nt + 1 : N, -1]
+# #out sample error
+# # avaliaçao da capacidade de generalização a outros dados que nao os de treino
+# print(cost(Xv,Yv,Nv,lambd))

@@ -149,13 +149,18 @@ print('find %d images of %d X %d pixels' % (N,n_row,n_col))
 
 Nt=int(N*1);
 I=n_row*n_col;
-Xt=data[:Nt,:-1];Yt=data[:Nt,-1];Yt = (Yt + 1) / 2
+Xt=data[:Nt,:-1];Yt=data[:Nt,-1]#;Yt = (Yt + 1) / 2
+#script para substituir os valores negativos por zero
+for n in range(len(Yt)):
+    if Yt[n] < 0:
+        Yt[n] = 0
+print(Yt)
 ew=np.ones([I+1])
 err=[];err.append(cost(Xt,Yt,Nt,ew));
 
 
-#0.01 -> training rate
-#200 -> nr de iteraçoes
+#0.1 -> training rate
+#500 -> nr de iteraçoes
 ew,err=run_stocastic(Xt,Yt,Nt,0.1,500,ew,err);print("\n")
 ew,err=run_stocastic(Xt,Yt,Nt,0.03,500,ew,err);print("\n")
 # ew,err=run_stocastic(Xt,Yt,Nt,0.03,3000,ew,err);print("\n")
