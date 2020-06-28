@@ -68,8 +68,6 @@ def confusion(Xeval,Yeval,N,lambd):
     return C
 
 
-
-   
 def plot_tagged_data(row,col,n_row,n_col,X,Y,lambd): 
     fig=plt.figure(figsize=(row,col))
     for n in range(row*col):
@@ -81,6 +79,9 @@ def plot_tagged_data(row,col,n_row,n_col,X,Y,lambd):
         else:
             plt.imshow(img,interpolation='none',cmap='cool')               
     plt.show()
+
+
+
 
 # -------------- Classifier Code -----------------
 
@@ -100,7 +101,8 @@ def sigmoid(s):
 def predictor (x, X, lambd):
     # DUVIDA -> tinhamos I + 1 mas so pode ser I senao os comprimentos nao coencidem
     #sum = np.zeros([I])
-
+    #k define o grau do kernel
+    k = 4
     #componente nr 0 // tratada a parte
     h = 0
     for n in range(len(X)):
@@ -113,7 +115,9 @@ def predictor (x, X, lambd):
         if lambd[n] == 0:
             continue
 
-        h = h + lambd[n] * np.dot(x,X[n]) + lambd[n]
+        dotProd = np.dot(x,X[n])
+        
+        h = h + lambd[n] * dotProd**k + lambd[n]
         # sum = sum + lambd[n] * X[n]
         # bias = bias + lambd[n]
     
@@ -212,16 +216,13 @@ err.append(cost(Xt,Yt,Nt,lambd))
 
 #0.1 -> training rate
 #500 -> nr de iteraçoes
-lambd,err=run_stocastic(Xt,Yt,Nt,1,2000,lambd,err);print("\n")
-lambd,err=run_stocastic(Xt,Yt,Nt,0.5,1500,lambd,err);print("\n")
-lambd,err=run_stocastic(Xt,Yt,Nt,0.2,800,lambd,err);print("\n")
-lambd,err=run_stocastic(Xt,Yt,Nt,0.05,600,lambd,err);print("\n")
-lambd,err=run_stocastic(Xt,Yt,Nt,0.01,500,lambd,err);print("\n")
+lambd,err=run_stocastic(Xt,Yt,Nt,0.5,1000,lambd,err);print("\n")
+lambd,err=run_stocastic(Xt,Yt,Nt,0.1,200,lambd,err);print("\n")
+#lambd,err=run_stocastic(Xt,Yt,Nt,0.1,200,lambd,err);print("\n")
 plot_error(err)
 
 print('in-samples error=%f ' % (cost(Xt,Yt,Nt,lambd)))
 C =confusion(Xt,Yt,Nt,lambd)
-
 TP = C[0,0]
 TN = C[1,1]
 acc = ((TP+TN)/Nt)*100
@@ -240,6 +241,8 @@ print(C)
 
 
 
+
+
 Ne=N-Nt
 Xe=data[Nt:N,:-1]
 Ye=data[Nt:N,-1]
@@ -253,7 +256,6 @@ TP = C[0,0]
 TN = C[1,1]
 FP = C[0,1]
 FN = C[1,0]
-
 #TP,TN,FP,FN = confusion(Xe,Ye,Ne,lambd)
 print('True positive=%i, True Negative=%i, False positive=%i, False negative=%i, ' % (TP,TN,FP,FN))
 plot_tagged_data(10,6,n_row,n_col,Xe,Ye,lambd)
