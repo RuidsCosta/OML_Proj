@@ -138,9 +138,9 @@ def run_stocastic(X,Y,N,eta,MAX_ITER,ew,err):
 #N,n_row,n_col,data=read_asc_data('./dataset/AND.txt')
 #N,n_row,n_col,data=read_asc_data('./dataset/XOR.txt')
 #N,n_row,n_col,data=read_asc_data('./dataset/rectangle60.txt')
-N,n_row,n_col,data=read_asc_data('./dataset/rectangle600.txt')
+#N,n_row,n_col,data=read_asc_data('./dataset/rectangle600.txt')
 #N,n_row,n_col,data=read_asc_data('./dataset/line600.txt')
-#N,n_row,n_col,data=read_asc_data('./dataset/square_circle.txt')
+N,n_row,n_col,data=read_asc_data('./dataset/square_circle.txt')
 #N,n_row,n_col,data=read_asc_data('./dataset/line1500.txt')
 #N,n_row,n_col,data=read_asc_data('./dataset/my_digit.txt');np.place(data[:,-1], data[:,-1]!=1, [-1])
 print('find %d images of %d X %d pixels' % (N,n_row,n_col))
@@ -162,11 +162,11 @@ err=[];err.append(cost(Xt,Yt,Nt,ew));
 
 #0.1 -> training rate
 #500 -> nr de iteraçoes
-ew,err=run_stocastic(Xt,Yt,Nt,1,2500,ew,err);print("\n")
-ew,err=run_stocastic(Xt,Yt,Nt,0.5,2000,ew,err);print("\n")
-ew,err=run_stocastic(Xt,Yt,Nt,0.1,1000,ew,err);print("\n")
-ew,err=run_stocastic(Xt,Yt,Nt,0.05,1000,ew,err);print("\n")
-ew,err=run_stocastic(Xt,Yt,Nt,0.01,1000,ew,err);print("\n")
+#ew,err=run_stocastic(Xt,Yt,Nt,1,2500,ew,err);print("\n")
+ew,err=run_stocastic(Xt,Yt,Nt,0.5,200,ew,err);print("\n")
+ew,err=run_stocastic(Xt,Yt,Nt,0.1,150,ew,err);print("\n")
+#ew,err=run_stocastic(Xt,Yt,Nt,0.05,1000,ew,err);print("\n")
+#ew,err=run_stocastic(Xt,Yt,Nt,0.01,1000,ew,err);print("\n")
 
 plot_error(err)
 
@@ -186,16 +186,23 @@ print(C)
 Ne=N-Nt
 Xe=data[Nt:N,:-1]
 Ye=data[Nt:N,-1]
+#script para substituir os valores negativos por zero
+for n in range(len(Ye)):
+    if Ye[n] < 0:
+        Ye[n] = 0
 print(Ne)
 print(Xe)
 print(Ye)
 print('out-samples error=%f' % (cost(Xe,Ye,Ne,ew)))
 C =confusion(Xe,Ye,Ne,ew)
-print(C)
 TP = C[0,0]
 TN = C[1,1]
 FP = C[0,1]
 FN = C[1,0]
+acc = ((TP+TN)/Ne)*100
+print ("Testing accuracy: "+ str(acc))
+print(C)
+
 #TP,TN,FP,FN = confusion(Xe,Ye,Ne,ew)
 print('True positive=%i, True Negative=%i, False positive=%i, False negative=%i, ' % (TP,TN,FP,FN))
 plot_tagged_data(10,6,n_row,n_col,Xe,Ye,ew)

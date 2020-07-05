@@ -57,10 +57,10 @@ def plot_error(err):
     plt.show()
     return 
 
-def confusion(Xeval,Yeval,N,lambd):
+def confusion(Xeval,Xt,Yeval,N,lambd):
     C=np.zeros([2,2])
     for n in range(N):
-        y=predictor(Xeval[n], Xeval,lambd)
+        y=predictor(Xeval[n], Xt,lambd)
         if(y<0.5 and Yeval[n]<0.5): C[0,0]=C[0,0]+1
         if(y>0.5 and Yeval[n]>0.5): C[1,1]=C[1,1]+1
         if(y<0.5 and Yeval[n]>0.5): C[1,0]=C[1,0]+1
@@ -127,13 +127,13 @@ def predictor (x, X, lambd):
 
 # Funçao que calcula o custo ou erro, compara o valor previsto com o real e avalia a precisao da previsao
 # A funçao de custo é igual ao do primal, o que muda á a de previsao
-def cost(X, Y, N, lambd):
+def cost(X, Xt, Y, N, lambd):
     # Custo
     En = 0
     # nao sei o que significa
     epsi = 1.e-12 # valor de segurança
     for n in range(N):
-        y = predictor(X[n], X, lambd)
+        y = predictor(X[n], Xt, lambd)
         if y < epsi: y = epsi
         if y > 1-epsi: y = 1-epsi
         En = En + Y[n] * np.log(y) + (1 - Y[n]) * np.log(1 - y)
@@ -164,7 +164,7 @@ def run_stocastic(X, Y, N, eta, MAX_ITER, lambd, err):
         new_eta = eta
         lambd = update(n, X, Y[n], new_eta, lambd)
         if it%10 == 0:
-            err.append(cost(X, Y, N, lambd))
+            err.append(cost(X, X, Y, N, lambd))
             print('\niter %d, cost=%f, eta=%e     \r' %(it,err[-1],new_eta),end='')
         it = it + 1
         if(it>MAX_ITER): break
@@ -207,7 +207,7 @@ err = []
 
 print(Xt)
 #in sample error
-err.append(cost(Xt,Yt,Nt,lambd))
+err.append(cost(Xt,Xt,Yt,Nt,lambd))
 
 
 #0.1 -> training rate
@@ -219,8 +219,8 @@ lambd,err=run_stocastic(Xt,Yt,Nt,0.05,600,lambd,err);print("\n")
 lambd,err=run_stocastic(Xt,Yt,Nt,0.01,500,lambd,err);print("\n")
 plot_error(err)
 
-print('in-samples error=%f ' % (cost(Xt,Yt,Nt,lambd)))
-C =confusion(Xt,Yt,Nt,lambd)
+print('in-samples error=%f ' % (cost(Xt,Xt,Yt,Nt,lambd)))
+C =confusion(Xt,Xt,Yt,Nt,lambd)
 
 TP = C[0,0]
 TN = C[1,1]
@@ -243,16 +243,22 @@ print(C)
 Ne=N-Nt
 Xe=data[Nt:N,:-1]
 Ye=data[Nt:N,-1]
+#script para substituir os valores negativos por zero
+for n in range(len(Ye)):
+    if Ye[n] < 0:
+        Ye[n] = 0
 print(Ne)
 print(Xe)
 print(Ye)
-print('out-samples error=%f' % (cost(Xe,Ye,Ne,lambd)))
-C =confusion(Xe,Ye,Ne,lambd)
+print('out-samples error=%f' % (cost(Xe,Xt,Ye,Ne,lambd)))
+C =confusion(Xe,Xt,Ye,Ne,lambd)
 print(C)
 TP = C[0,0]
 TN = C[1,1]
 FP = C[0,1]
 FN = C[1,0]
+acc = ((TP+TN)/Ne)*100
+print ("Testing accuracy: "+ str(acc))
 
 #TP,TN,FP,FN = confusion(Xe,Ye,Ne,lambd)
 print('True positive=%i, True Negative=%i, False positive=%i, False negative=%i, ' % (TP,TN,FP,FN))
